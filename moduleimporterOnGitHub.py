@@ -5,17 +5,20 @@ import os
 import tempfile
 import urllib.request
 
-def moduleimporterOnGitHub(url, cache=False):
+def moduleimporterOnGitHub(url, cache=False, tmpfilename=None):
     # read raw data(binary) On Github
     with urllib.request.urlopen(url) as f: l = f.read() #.decode(encoding)  
+
+    # file open & write data
+    if tmpfilename is None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.py', dir='.') as fp:
+            fp.write(l)
+        name = fp.name
+    else:
+        with open(tmpfilename, mode='wb') as f:
+            f.write(l)
+        name = tmpfilename
         
-    # make tmpfile
-    d, name = tempfile.mkstemp(suffix='.py', dir='.')
-    # write date
-    os.write(d, l)
-    # close system
-    os.close(d)
-    
     # import 
     imp = __import__(os.path.basename(name)[:-3])
     
@@ -23,4 +26,3 @@ def moduleimporterOnGitHub(url, cache=False):
     if not cache : os.remove(name)
         
     return imp
-
